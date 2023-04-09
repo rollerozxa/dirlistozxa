@@ -20,7 +20,7 @@ function row($name, $date, $size) {
 }
 
 function build_blocks($items) {
-	global $ignore_file_list, $path;
+	global $ignore_file_list, $path, $folder;
 
 	$rtn = '';
 
@@ -39,7 +39,8 @@ function build_blocks($items) {
 	natsort($objects['directories']);
 	natsort($objects['files']);
 
-	$rtn .= row('../', '-', '-');
+	if ($folder != '/')
+		$rtn .= row('../', '-', '-');
 
 	foreach ($objects['directories'] as $dir) {
 		$name = basename($dir).'/';
