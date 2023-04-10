@@ -94,6 +94,7 @@ a {
 	<?=build_blocks(scandir($path)) ?>
 	<tr><th colspan="3"><hr></th></tr>
 </table>
+<address><?=$_SERVER['SERVER_SOFTWARE'] ?? 'Cool' ?> server at <?=$_SERVER['HTTP_HOST'] ?>, index powered by <a href="https://github.com/rollerozxa/dirlistozxa/">dirlistozxa</a></address>
 
 </body>
 </html>
