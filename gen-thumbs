@@ -5,4 +5,4 @@
 rm -rf .thumbs/
 mkdir .thumbs
 
-find \( -iname "*.png" -or -iname "*.jpg" -or -iname "*.jpeg" \) -exec bash -c 'mogrify -path .thumbs/ -auto-orient -thumbnail 128x128 -quality 90% "{}" &' \;
+find \( -iname "*.png" -or -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.jfif" -or -iname "*.gif" -or -iname "*.webp" \) -exec bash -c 'mogrify -path .thumbs/ -auto-orient -thumbnail 128x128 -quality 90% "{}" &' \;
