@@ -61,8 +61,12 @@ function row($name, $date, $size, $thumb) {
 	};
 
 	return sprintf(
-		'<tr><td class="tum"><img src="%s" loading="lazy"></td><td><a href="%s">%s</a></td><td>%s</td><td class="r">%s</td></tr>',
-	$img, $name, $name, $date, $size);
+		'<tr>
+			<td class="tum"><a href="%s"><img src="%s" loading="lazy"></td>
+			<td><a href="%s">%s</a></td>
+			<td>%s</td><td class="r">%s</td>
+		</tr>',
+	$name, $img, $name, $name, $date, $size);
 }
 
 function build_blocks($items) {
