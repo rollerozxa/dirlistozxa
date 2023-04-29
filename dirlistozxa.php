@@ -1,8 +1,29 @@
 <?php
+// Configuration:
+
+// List of filenames (and folder names) that should be ignored.
+$ignore_file_list = [
+	'.htaccess', '.htpasswd',	// Apache junk files
+	'Thumbs.db', '.DS_Store',	// OS junk files
+	'index.php', 'index.html',	// Potential other index files
+	'.git', 'vendor',			// Dev
+	'dirlistozxa.php', '.dirlistozxa', '.thumbs', 'gen-thumbs' // dirlistozxa
+];
+
+// ================
+
+// Lazy sanitisation done if the web server somehow sends idiotic input,
+// nginx with default configuration (merge_slashes) doesn't actually need this.
+$_SERVER['REQUEST_URI'] = str_replace('../', '', $_SERVER['REQUEST_URI']);
+
 $folder = str_replace('?'.$_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']);
 $path = $_SERVER['DOCUMENT_ROOT'].$folder;
 
-$ignore_file_list = ['.htaccess', 'Thumbs.db', '.DS_Store', 'index.php', 'index.html', 'dirlistozxa.php'];
+if (!is_dir($path)) die('invalid folder?');
+
+define('THUMB_FOLDER', 1);
+define('THUMB_FILE', 2);
+define('THUMB_IMAGE', 3);
 
 function display_size($bytes, $precision = 2) {
 	$units = ['B', 'K', 'M', 'G', 'T'];
@@ -13,10 +34,16 @@ function display_size($bytes, $precision = 2) {
 	return round($bytes, $precision) . $units[$pow];
 }
 
-function row($name, $date, $size) {
+function row($name, $date, $size, $thumb) {
+	$img = match ($thumb) {
+		THUMB_FOLDER => '/.dirlistozxa/folder.png',
+		THUMB_FILE => '/.dirlistozxa/file.png',
+		THUMB_IMAGE => "/.thumbs/".$name,
+	};
+
 	return sprintf(
-		'<tr><td><a href="%s">%s</a></td><td>%s</td><td class="r">%s</td></tr>',
-	$name, $name, $date, $size);
+		'<tr><td class="tum"><img src="%s" loading="lazy"></td><td><a href="%s">%s</a></td><td>%s</td><td class="r">%s</td></tr>',
+	$img, $name, $name, $date, $size);
 }
 
 function build_blocks($items) {
@@ -40,13 +67,13 @@ function build_blocks($items) {
 	natsort($objects['files']);
 
 	if ($folder != '/')
-		$rtn .= row('../', '-', '-');
+		$rtn .= row('../', '', '', THUMB_FOLDER);
 
 	foreach ($objects['directories'] as $dir) {
 		$name = basename($dir).'/';
 		$date = date('Y-m-d H:i', filemtime($path.$dir));
 
-		$rtn .= row($name, $date, '-');
+		$rtn .= row($name, $date, '-', THUMB_FOLDER);
 	}
 
 	foreach ($objects['files'] as $file) {
@@ -54,7 +81,9 @@ function build_blocks($items) {
 		$date = date('Y-m-d H:i', filemtime($path.$file));
 		$size = display_size(filesize($path.$file));
 
-		$rtn .= row($name, $date, $size);
+		$doThumb = file_exists($_SERVER['DOCUMENT_ROOT']."/.thumbs/".$file) ? THUMB_IMAGE : THUMB_FILE;
+
+		$rtn .= row($name, $date, $size, $doThumb);
 	}
 
 	return $rtn;
@@ -83,18 +112,29 @@ a {
 	color: lime;
 	text-decoration: none;
 }
+
+.tum {
+	height: 48px;
+	width: 48px;
+}
+.tum img {
+	max-width: 100%;
+	max-height: 100%;
+	margin: auto;
+	display: block;
+}
 	</style>
 </head>
 <body>
-<h1>Index of <?=$folder ?></h1>
+	<h1>Index of <?=$folder ?></h1>
 
-<table>
-	<tr><th>Name</th><th>Last modified</th><th>Size</th></tr>
-	<tr><th colspan="3"><hr></th></tr>
-	<?=build_blocks(scandir($path)) ?>
-	<tr><th colspan="3"><hr></th></tr>
-</table>
-<address><?=$_SERVER['SERVER_SOFTWARE'] ?? 'Cool' ?> server at <?=$_SERVER['HTTP_HOST'] ?>, index powered by <a href="https://github.com/rollerozxa/dirlistozxa/">dirlistozxa</a></address>
+	<table>
+		<tr><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>
+		<tr><th colspan="4"><hr></th></tr>
+		<?=build_blocks(scandir($path)) ?>
+		<tr><th colspan="4"><hr></th></tr>
+	</table>
 
+	<address><?=$_SERVER['SERVER_SOFTWARE'] ?? 'Cool' ?> server at <?=$_SERVER['HTTP_HOST'] ?>, index powered by <a href="https://github.com/rollerozxa/dirlistozxa/">dirlistozxa</a></address>
 </body>
 </html>
