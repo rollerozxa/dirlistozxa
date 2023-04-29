@@ -35,6 +35,9 @@ $ignore_file_list = [
 // nginx with default configuration (merge_slashes) doesn't actually need this.
 $_SERVER['REQUEST_URI'] = str_replace('../', '', $_SERVER['REQUEST_URI']);
 
+// Allow spaces and other heretical stuff in folder names.
+$_SERVER['REQUEST_URI'] = urldecode($_SERVER['REQUEST_URI']);
+
 $folder = str_replace('?'.$_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']);
 $path = $_SERVER['DOCUMENT_ROOT'].$folder;
 
