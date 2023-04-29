@@ -1,4 +1,7 @@
-# `dirlistozxa`
+<h1 align="center"><code>dirlistozxa</code></h1>
+
+<p align="center"><img src="https://user-images.githubusercontent.com/60856959/235306666-4c66584a-f4c0-413e-bc58-09a724b02158.png"></p>
+
 A simple directory lister script in PHP that will show the files and directories in a directory, along with their modification date and size. Image thumbnail previews are also supported.
 
 ## Setting up
