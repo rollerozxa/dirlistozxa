@@ -2,13 +2,37 @@
 
 # Generates thumbs
 
-if [ "$1" != "" ]; then
-	target_file=.thumbs/$(basename -- "$1")
-	if [ "$1" -nt "$target_file" ]; then
-		echo "update $target_file"
-		mogrify -path .thumbs/ -auto-orient -thumbnail 128x128 -quality 90% "$1"
+if [[ "$1" != "" ]]; then
+	if [[ -L "$1" ]]; then
+		exit
+	fi
+
+	src="$1"
+	base=$(basename -- "$src")
+	dst=".thumbs/$base"
+
+	if [[ "$src" -nt "$dst" ]]; then
+		echo "update $dst"
+
+		if [[ "$src" == *.mp4 ]] || [[ "$src" == *.gif ]]; then
+			dst_tmp="/tmp/$base.png"
+			rm -f "$dst_tmp"
+
+			ffmpeg -hide_banner -loglevel error -i "$src" -ss 00:00:00.000 -vframes 1 "$dst_tmp"
+			src="$dst_tmp"
+
+			dst_tmp="/tmp/$base"
+			mv "$src" "$dst_tmp"
+			src="$dst_tmp"
+		fi
+
+		mogrify -path .thumbs/ -auto-orient -thumbnail 128x128 -quality 90% "$src"
+
+		rm -f "$dst_tmp"
 	fi
 else
 	mkdir -p .thumbs
-	find -not -path "./.thumbs/*" \( -iname "*.png" -or -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.jfif" -or -iname "*.gif" -or -iname "*.webp" \) | parallel -j$(nproc) "$0" {}
+	find -type f -not -path "./.thumbs/*" \
+		| grep -iE "\.png$|\.jpg$|\.jpeg$|\.jfif$|\.gif$|\.webp$|\.mp4$" \
+		| parallel -j$(nproc) "$0" {}
 fi
