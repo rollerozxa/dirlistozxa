@@ -22,11 +22,7 @@
 
 // List of filenames (and folder names) that should be ignored.
 $ignore_file_list = [
-	'.htaccess', '.htpasswd',	// Apache junk files
-	'Thumbs.db', '.DS_Store',	// OS junk files
-	'index.php', 'index.html',	// Potential other index files
-	'.git', 'vendor',			// Dev
-	'dirlistozxa.php', '.dirlistozxa', '.thumbs', 'gen-thumbs' // dirlistozxa
+	'dirlistozxa.php', 'gen-thumbs' // dirlistozxa
 ];
 
 // ================
@@ -80,7 +76,7 @@ function build_blocks($items) {
 	$objects = [ 'directories' => [], 'files' => [] ];
 
 	foreach ($items as $item) {
-		if ($item == '..' || $item == '.' || in_array($item, $ignore_file_list)) continue;
+		if (in_array($item, $ignore_file_list) || str_starts_with($item, '.')) continue;
 
 		if (is_dir($path.$item))
 			$objects['directories'][$item] = $item;
