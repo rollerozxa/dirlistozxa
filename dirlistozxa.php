@@ -63,7 +63,7 @@ function row($name, $date, $size, $thumb) {
 		'<tr>
 			<td class="tum"><a href="%s"><img src="%s" loading="lazy"></td>
 			<td><a href="%s">%s</a></td>
-			<td>%s</td><td class="r">%s</td>
+			<td class="modf">%s</td><td class="size r">%s</td>
 		</tr>',
 	$name, $img, $name, $name, $date, $size);
 }
@@ -114,8 +114,9 @@ function build_blocks($items) {
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Index of <?=$folder ?></title>
 	<meta charset="utf-8">
+	<title>Index of <?=$folder ?></title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>
 body {
 	background-color: #111;
@@ -145,13 +146,17 @@ a {
 	margin: auto;
 	display: block;
 }
+
+@media only screen and (max-width: 640px) {
+	.modf { display: none; }
+}
 	</style>
 </head>
 <body>
 	<h1>Index of <?=$folder ?></h1>
 
 	<table>
-		<tr><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>
+		<tr><th colspan="2">Name</th><th class="modf">Last modified</th><th class="size">Size</th></tr>
 		<tr><th colspan="4"><hr></th></tr>
 		<?=build_blocks(scandir($path)) ?>
 		<tr><th colspan="4"><hr></th></tr>
