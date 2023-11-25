@@ -43,29 +43,19 @@ define('THUMB_FOLDER', 1);
 define('THUMB_FILE', 2);
 define('THUMB_IMAGE', 3);
 
-function display_size($bytes, $precision = 2) {
-	$units = ['B', 'K', 'M', 'G', 'T'];
-	$bytes = max($bytes, 0);
-	$pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-	$pow = min($pow, count($units) - 1);
-	$bytes /= (1 << (10 * $pow));
-	return round($bytes, $precision) . $units[$pow];
-}
-
-function row($name, $date, $size, $thumb) {
+function row($name, $thumb) {
 	$img = match ($thumb) {
 		THUMB_FOLDER => '/.dirlistozxa/folder.png',
 		THUMB_FILE => '/.dirlistozxa/file.png',
 		THUMB_IMAGE => "/.thumbs/".$name,
 	};
 
-	return sprintf(
-		'<tr>
-			<td class="tum"><a href="%s"><img src="%s" loading="lazy"></td>
-			<td><a href="%s">%s</a></td>
-			<td class="modf">%s</td><td class="size r">%s</td>
-		</tr>',
-	$name, $img, $name, $name, $date, $size);
+	return <<<HTML
+		<div class="item"><a href="$name">
+			<div class="top"><img src="$img" loading="lazy"></div>
+			<div class="bottom">$name</div>
+		</a></div>
+	HTML;
 }
 
 function build_blocks($items) {
@@ -89,23 +79,20 @@ function build_blocks($items) {
 	natsort($objects['files']);
 
 	if ($folder != '/')
-		$rtn .= row('../', '', '', THUMB_FOLDER);
+		$rtn .= row('../', THUMB_FOLDER);
 
 	foreach ($objects['directories'] as $dir) {
 		$name = basename($dir).'/';
-		$date = date('Y-m-d H:i', filemtime($path.$dir));
 
-		$rtn .= row($name, $date, '-', THUMB_FOLDER);
+		$rtn .= row($name, THUMB_FOLDER);
 	}
 
 	foreach ($objects['files'] as $file) {
 		$name = basename($file);
-		$date = date('Y-m-d H:i', filemtime($path.$file));
-		$size = display_size(filesize($path.$file));
 
 		$doThumb = file_exists($_SERVER['DOCUMENT_ROOT']."/.thumbs/".$file) ? THUMB_IMAGE : THUMB_FILE;
 
-		$rtn .= row($name, $date, $size, $doThumb);
+		$rtn .= row($name, $doThumb);
 	}
 
 	return $rtn;
@@ -117,51 +104,14 @@ function build_blocks($items) {
 	<meta charset="utf-8">
 	<title>Index of <?=$folder ?></title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<style>
-body {
-	background-color: #111;
-	color: #eee;
-	font-family: monospace;
-	font-size: 12pt;
-	max-width: 1440px;
-	margin: auto;
-	padding: 0 5px;
-}
-td { padding: 5px; }
-th { padding: 0 5px; }
-.r { text-align: right }
 
-a {
-	color: lime;
-	text-decoration: none;
-}
-
-.tum {
-	height: 48px;
-	width: 48px;
-}
-.tum img {
-	max-width: 100%;
-	max-height: 100%;
-	margin: auto;
-	display: block;
-}
-
-@media only screen and (max-width: 640px) {
-	.modf { display: none; }
-}
-	</style>
+	<link rel="stylesheet" href="/.dirlistozxa/style.css">
 </head>
 <body>
 	<h1>Index of <?=$folder ?></h1>
 
-	<table>
-		<tr><th colspan="2">Name</th><th class="modf">Last modified</th><th class="size">Size</th></tr>
-		<tr><th colspan="4"><hr></th></tr>
+	<div class="dirlist">
 		<?=build_blocks(scandir($path)) ?>
-		<tr><th colspan="4"><hr></th></tr>
-	</table>
-
-	<address><?=$_SERVER['SERVER_SOFTWARE'] ?? 'Cool' ?> server at <?=$_SERVER['HTTP_HOST'] ?>, index powered by <a href="https://github.com/rollerozxa/dirlistozxa/">dirlistozxa</a></address>
+	</div>
 </body>
 </html>
